@@ -1,0 +1,71 @@
+# Verifica uso include (React)
+
+Tool desktop Java che individua gli **include non usati** in un progetto React e, opzionalmente, li **sposta** in `app/include inutilizzati/`. Genera un **report .txt**.
+
+## Caratteristiche
+- Indicizza tutti gli include in una cartella (file `.jsx`, `.tsx`, `.js`).
+- Scansiona **tutti** i `.jsx/.tsx` sotto `app/`.
+- Un include è “usato” se almeno un file sotto `app/` lo importa.
+- Esclude solo l’**auto-import** (un include che importa sé stesso).
+- Report `.txt` con la lista degli **inutilizzati**.
+- Spostamento facoltativo degli inutilizzati con gestione collisioni (`_1`, `_2`, …).
+
+## Requisiti
+- **Java 17**
+- **Maven 3.9+**
+- Windows/macOS/Linux
+
+Verifica:
+```bash
+java -version
+mvn -v
+```
+
+## Build
+```bash
+mvn clean package -DskipTests
+```
+
+Avvio da IDE: esegui `app.ui.App`.
+Avvio da JAR ombra (se usi maven-shade con `mainClass=app.ui.App`):
+```bash
+java -jar target/elimina-import-1.0.0-shaded.jar
+```
+
+## Uso
+1. **Cartella App**: seleziona la directory `app` del progetto.
+2. **Cartella Includes**: seleziona la cartella con **tutti** gli include (es. `app/private.includes`).
+3. Opzione: spunta **Sposta include NON usati** per muovere i file orfani.
+4. Clicca **Avvia**.
+   La UI mostra i file scansionati e l’esito per ogni include.
+
+## Output
+- Report TXT in `app/`:
+  - `include-unused-YYYYMMDD-HHMMSS.txt`
+  - formato: `NomeInclude | path/relativo`
+- Se l’opzione di spostamento è attiva:
+  - Include non usati spostati in `app/include inutilizzati/`.
+
+## Logica di rilevamento
+- Gli include sono indicizzati dal **nome file** senza estensione.
+- Nei file sotto `app/` si cercano `import ... from '.../<NomeCartellaIncludes>/<NomeInclude>[...]'`.
+- Normalizzazione di `/index` ed estensioni.
+- Ignorato solo il caso di **self-reference** (stesso file che importa sé stesso).
+- Non modifica i file chiamanti. **Non** valuta “componenti vuoti”.
+
+## Struttura
+```
+src/main/java/app/ui/App.java                     # UI Swing
+src/main/java/app/core/IncludeUsageService.java   # indicizzazione + scansione + decisioni
+src/main/java/app/core/Report.java                # report TXT degli inutilizzati
+src/main/java/app/core/Refactorer.java            # spostamento file
+```
+
+## Limitazioni
+- Considera solo `import ... from '...'` statici in `.jsx/.tsx`.
+- Ignora `require`, dynamic import, alias Webpack/TS (`paths`) e barrel fuori dalla cartella indicata.
+- Nomi file **uguali** in sottocartelle diverse sono trattati come lo stesso include (match per basename).
+
+## Sicurezza operativa
+- Prima esegui **senza** spostare. Valuta il TXT.
+- Abilita lo spostamento solo dopo aver verificato il report.
