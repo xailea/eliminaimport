@@ -2,6 +2,7 @@ package app.ui;
 
 import app.core.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.*;
@@ -15,9 +16,7 @@ public class App {
     private JCheckBox applyMoves;
 
     public static void main(String[] args){
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {}
+        try { CyberUI.install(); } catch (Exception ignored) {}
         SwingUtilities.invokeLater(App::new);
     }
 
@@ -40,7 +39,6 @@ public class App {
         startBtn.addActionListener(e -> runScan());
 
         var grid = new JPanel(new GridBagLayout());
-        grid.setBorder(BorderFactory.createTitledBorder("Percorsi"));
         var c = new GridBagConstraints(); c.insets = new Insets(4,4,4,4); c.fill = GridBagConstraints.HORIZONTAL;
 
         c.gridx=0; c.gridy=0; grid.add(new JLabel("Cartella App:"), c);
@@ -54,7 +52,6 @@ public class App {
         c.gridx=1; c.gridy=2; c.gridwidth=2; grid.add(applyMoves, c);
 
         var center = new JPanel(new BorderLayout(8,8));
-        center.setBorder(BorderFactory.createTitledBorder("Log"));
         center.add(new JScrollPane(log), BorderLayout.CENTER);
         center.add(bar, BorderLayout.SOUTH);
 
@@ -62,6 +59,49 @@ public class App {
         frame.add(grid, BorderLayout.NORTH);
         frame.add(center, BorderLayout.CENTER);
         frame.add(startBtn, BorderLayout.SOUTH);
+
+        final Color neonMag = new Color(0xff00ff);
+        final Color neonCyn = new Color(0x00e5ff);
+        final Color panelBg = new Color(0x12122b);
+        final Font monoBold = new Font("Consolas", Font.BOLD, 13);
+
+        appField.setBackground(panelBg);
+        appField.setForeground(Color.WHITE);
+        appField.setCaretColor(neonMag);
+        incField.setBackground(panelBg);
+        incField.setForeground(Color.WHITE);
+        incField.setCaretColor(neonMag);
+
+        log.setBackground(new Color(0x0d0b1e));
+        log.setForeground(new Color(0xe6e6e6));
+        log.setCaretColor(neonMag);
+        log.setSelectedTextColor(Color.WHITE);
+
+        startBtn.setFont(monoBold);
+        startBtn.setBackground(neonMag);
+        startBtn.setForeground(Color.BLACK);
+        startBtn.setFocusPainted(false);
+        startBtn.setBorder(new LineBorder(neonCyn, 2, true));
+
+        browseAppBtn.setBorder(new LineBorder(neonMag, 1, true));
+        browseIncBtn.setBorder(new LineBorder(neonMag, 1, true));
+
+        bar.setForeground(neonCyn);
+        bar.setBackground(new Color(0x0d0b1e));
+        bar.setBorder(new LineBorder(neonMag, 1, true));
+
+        grid.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(neonMag, 1, true), "Percorsi",
+                TitledBorder.LEFT, TitledBorder.TOP, monoBold, neonMag));
+
+        center.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(neonCyn, 1, true), "Log",
+                TitledBorder.LEFT, TitledBorder.TOP, monoBold, neonCyn));
+
+        grid.setBackground(panelBg);
+        center.setBackground(panelBg);
+        frame.getContentPane().setBackground(panelBg);
+
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

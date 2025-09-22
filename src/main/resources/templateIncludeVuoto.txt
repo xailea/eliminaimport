@@ -1,0 +1,5 @@
+const *************** = ({getFieldProps, getInput, getInputSelect, getRadio, getInputDate, getCheckBox, getInputAmount, getTextarea, props}) => (
+<>
+</>
+)
+export default *****************
