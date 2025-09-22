@@ -1,29 +1,32 @@
 package app.ui;
 
-import app.core.*;
+import app.core.IncludeUsageService;
+import app.core.Refactorer;
+import app.core.Report;
+
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.io.File;
-import java.nio.file.*;
+import java.nio.file.Paths;
 
 public class App {
     private JFrame frame;
-    private JButton startBtn, browseAppBtn, browseIncBtn;
+    private JButton startBtn, browseAppBtn, browseIncBtn, backBtn;
     private JProgressBar bar;
     private JTextArea log;
     private JTextField appField, incField;
     private JCheckBox applyMoves;
 
-    public static void main(String[] args){
-        try { CyberUI.install(); } catch (Exception ignored) {}
-        SwingUtilities.invokeLater(App::new);
-    }
-
     public App(){
         frame = new JFrame("Include Analyzer");
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setSize(920, 560);
+
+        backBtn = new JButton("← Indietro");
+        backBtn.addActionListener(e -> { frame.dispose(); Launcher.open(); });
+        var header = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        header.add(backBtn);
 
         appField = new JTextField(Paths.get(".").toAbsolutePath().normalize().toString());
         incField = new JTextField("");
@@ -38,6 +41,7 @@ public class App {
         browseIncBtn.addActionListener(e -> pickFolder(incField, "Seleziona la cartella degli include"));
         startBtn.addActionListener(e -> runScan());
 
+        // griglia percorsi
         var grid = new JPanel(new GridBagLayout());
         var c = new GridBagConstraints(); c.insets = new Insets(4,4,4,4); c.fill = GridBagConstraints.HORIZONTAL;
 
@@ -51,56 +55,36 @@ public class App {
 
         c.gridx=1; c.gridy=2; c.gridwidth=2; grid.add(applyMoves, c);
 
+        var top = new JPanel(new BorderLayout(8,8));
+        top.add(header, BorderLayout.NORTH);
+        top.add(grid,   BorderLayout.CENTER);
+
         var center = new JPanel(new BorderLayout(8,8));
         center.add(new JScrollPane(log), BorderLayout.CENTER);
         center.add(bar, BorderLayout.SOUTH);
 
-        frame.setLayout(new BorderLayout(8,8));
-        frame.add(grid, BorderLayout.NORTH);
-        frame.add(center, BorderLayout.CENTER);
-        frame.add(startBtn, BorderLayout.SOUTH);
-
         final Color neonMag = new Color(0xff00ff);
         final Color neonCyn = new Color(0x00e5ff);
-        final Color panelBg = new Color(0x12122b);
-        final Font monoBold = new Font("Consolas", Font.BOLD, 13);
-
-        appField.setBackground(panelBg);
-        appField.setForeground(Color.WHITE);
-        appField.setCaretColor(neonMag);
-        incField.setBackground(panelBg);
-        incField.setForeground(Color.WHITE);
-        incField.setCaretColor(neonMag);
-
-        log.setBackground(new Color(0x0d0b1e));
-        log.setForeground(new Color(0xe6e6e6));
-        log.setCaretColor(neonMag);
-        log.setSelectedTextColor(Color.WHITE);
+        final Color panelBg = CyberUI.isLight() ? new Color(0xf5f7f8) : new Color(0x12122b);
+        final Font  monoBold = new Font("Consolas", Font.BOLD, 13);
 
         startBtn.setFont(monoBold);
-        startBtn.setBackground(neonMag);
-        startBtn.setForeground(Color.BLACK);
-        startBtn.setFocusPainted(false);
         startBtn.setBorder(new LineBorder(neonCyn, 2, true));
-
         browseAppBtn.setBorder(new LineBorder(neonMag, 1, true));
         browseIncBtn.setBorder(new LineBorder(neonMag, 1, true));
+        backBtn.setBorder(new LineBorder(neonMag, 1, true));
 
-        bar.setForeground(neonCyn);
-        bar.setBackground(new Color(0x0d0b1e));
-        bar.setBorder(new LineBorder(neonMag, 1, true));
-
-        grid.setBorder(BorderFactory.createTitledBorder(
-                new LineBorder(neonMag, 1, true), "Percorsi",
-                TitledBorder.LEFT, TitledBorder.TOP, monoBold, neonMag));
-
-        center.setBorder(BorderFactory.createTitledBorder(
-                new LineBorder(neonCyn, 1, true), "Log",
-                TitledBorder.LEFT, TitledBorder.TOP, monoBold, neonCyn));
-
+        grid.setBorder(BorderFactory.createTitledBorder(new LineBorder(neonMag, 1, true), "Percorsi"));
+        center.setBorder(BorderFactory.createTitledBorder(new LineBorder(neonCyn, 1, true), "Log"));
+        top.setBackground(panelBg);
         grid.setBackground(panelBg);
         center.setBackground(panelBg);
         frame.getContentPane().setBackground(panelBg);
+
+        frame.setLayout(new BorderLayout(8,8));
+        frame.add(top,    BorderLayout.NORTH);
+        frame.add(center, BorderLayout.CENTER);
+        frame.add(startBtn, BorderLayout.SOUTH);
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -120,9 +104,7 @@ public class App {
     }
 
     private void runScan(){
-        startBtn.setEnabled(false);
-        browseAppBtn.setEnabled(false);
-        browseIncBtn.setEnabled(false);
+        startBtn.setEnabled(false); browseAppBtn.setEnabled(false); browseIncBtn.setEnabled(false);
         bar.setIndeterminate(true);
         log.setText("Start include-usage...\n");
 
